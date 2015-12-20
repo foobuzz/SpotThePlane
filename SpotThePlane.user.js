@@ -247,29 +247,6 @@ function createSpotThePlaneLine(value){
 
 /* Managing the user coordinates inputs */
 
-// function latSpanToInput(latSpan) {
-// 	var input = getInput(userLat);
-// 	var parent = latSpan.parent;
-// 	parent.insertBefore(input, latSpan);
-// 	parent.removeChild(latSpan);
-// 	input.addEventListener(
-// 		'blur',
-// 		function() {
-// 			latInputToSpan();
-// 			updateSTPLine();
-// 		},
-// 		false
-// 	);
-// 	input.addEventListener(
-// 		'keypress',
-// 		function() {
-// 			latInputToSpan();
-// 			updateSTPLine();
-// 		},
-// 		false
-// 	);
-// }
-
 function toBox(elem){
 	var parent = elem.parentNode;
 	var id = elem.getAttribute('id');
