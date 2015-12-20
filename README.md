@@ -16,7 +16,7 @@ SpotThePlane is a user script for [flightradar24](http://flightradar24.com/) whi
  
    * For **Opera**: [Violent Monkey](https://openuserjs.org/about/Violentmonkey-for-Opera)
 
- 2. [Click Here](https://github.com/foobuzz/SpotThePlane/blob/master/SpotThePlane.user.js) to install the user script
+ 2. [Click Here](https://raw.githubusercontent.com/foobuzz/SpotThePlane/master/SpotThePlane.user.js) to install the user script
 
 
 ## Configuration
