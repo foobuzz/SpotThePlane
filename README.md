@@ -3,6 +3,8 @@ SpotThePlane
 
 SpotThePlane is a user script for [flightradar24](http://flightradar24.com/) which make it easy to spot the actual plane you've selected in the sky. Just enter your coordinates, zoom to where you are and select a plane. On the left overlay containing information about the plane, a row is named *SpotThePlane* and contains the coordinates of the plane relative to *you*:
 
+![Screenshot](screenshot.png)
+
 
 ## Installation
 
