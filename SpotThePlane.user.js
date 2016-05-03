@@ -1,12 +1,31 @@
 // ==UserScript==
 // @name        SpotThePlane
-// @namespace   foo
+// @namespace   https://github.com/foobuzz/SpotThePlane
 // @description Add a cell in the plane info grid to help user spot the actual plane in the sky
-// @include     http://www.flightradar24.com/*
-// @version     1
+// @include     https://www.flightradar24.com/*
+// @version     2
 // @grant       none
 // ==/UserScript==
 
+
+
+var STYLES = "\
+#userInputsContainer {\
+	position: fixed;\
+	left: 280px;\
+	top: 63px;\
+	z-index: 999;\
+	background: transparent;\
+}\
+#userInputsContainer input {\
+	background: rgba(0,0,0,0.33);\
+	border: none;\
+	color: white;\
+	font-family: 'Open Sans', Arial;\
+	font-size: 13px;\
+	padding: 5px;\
+	width: 100px;\
+}";
 
 /* User's coordinates. Will be set by setUserData using local storage or
    default values.
@@ -32,6 +51,16 @@ var COMPASS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
 */
 
 /* CONVERSIONS, PARSING */
+
+
+function safeParseCoords(string) {
+	if (/^-?\d+(\.\d+)?$/.test(string)) {
+		return parseFloat(string);
+	}
+	else {
+		return NaN;
+	}
+}
 
 function toRad(degrees){
 	return degrees * Math.PI/180;
@@ -177,7 +206,7 @@ function getSTPLine(lat1, lon1, lat2, lon2, altitude){
 function getPlaneData(){
 	var latitude = document.getElementById('latVal').innerHTML;
 	var longitude = document.getElementById('lonVal').innerHTML;
-	var altitude = document.getElementById('altitudeVal').innerHTML;
+	var altitude = document.querySelector('#altitudeVal .hasTooltip').innerHTML;
 	return {'lat': toRad(parseFloat(latitude)),
 			'lon': toRad(parseFloat(longitude)),
 			'alt': parseAlt(altitude)};
@@ -188,149 +217,54 @@ function getPlaneData(){
    coordinates.
 */
 function setUserData(){
-	userLat = localStorage.getItem('userLat');
-	userLon = localStorage.getItem('userLon');
-	if (!userLat){
-		userLat = '...';
-	}
-	if (!userLon){
-		userLon = '...';
-	}
+	userLat = safeParseCoords(localStorage.getItem('userLat'));
+	userLon = safeParseCoords(localStorage.getItem('userLon'));
 }
 
 
-/* DOM MODIFICATION */
+/* DOM */
+
+function setStyles() {
+	var styleElem = document.createElement('style')
+	styleElem.innerHTML = STYLES;
+	document.head.appendChild(styleElem);
+}
 
 /* Making of the new line in the plane info grid. */
 function createSpotThePlaneLine(value){
-	var newLine = document.createElement('tr');
-	var firstCol = document.createElement('td');
-	var secondCol = document.createElement('td');
-	
-	firstCol.setAttribute('class', 'iconContainer');
-	secondCol.setAttribute('colspan', '2');
-	
-	secondCol.appendChild(document.createTextNode('SpotThePlane'));
-	
-	var userForm = document.createElement('form');
-	userForm.setAttribute('style',
-		'display:inline-block; float:right;');
-	userForm.setAttribute('action', 'javascript:void(0);');
-	
-	var userLatSpan = document.createElement('span');
-	userLatSpan.setAttribute('id', 'userLat');
-	userLatSpan.innerHTML = reduceCoord(userLat);
-	var userLonSpan = document.createElement('span');
-	userLonSpan.setAttribute('id', 'userLon');
-	userLonSpan.innerHTML = reduceCoord(userLon);
-	
-	userForm.appendChild(userLatSpan);
-	userForm.appendChild(document.createTextNode(' | '));
-	userForm.appendChild(userLonSpan);
-	
-	secondCol.appendChild(userForm);
-	
-	secondCol.appendChild(document.createElement('br'));
-	
-	var stpLine = document.createElement('span');
-	stpLine.setAttribute('class', 'strong');
-	stpLine.setAttribute('id', 'SpotThePlane');
-	stpLine.appendChild(document.createTextNode(value));
-	
-	secondCol.appendChild(stpLine);
-	
-	newLine.appendChild(firstCol);
-	newLine.appendChild(secondCol);
-	
+	var newLine = document.createElement('div');
+	newLine.setAttribute('class', 'longitem');
+	newLine.innerHTML = '<h4>SpotThePlane</h4>\
+		<div id="SpotThePlane" class="attrText">Initializing...</div>';
 	return newLine;
 }
 
-/* Managing the user coordinates inputs */
 
-function toBox(elem){
-	var parent = elem.parentNode;
-	var id = elem.getAttribute('id');
-	if (id == 'userLat'){
-		content = userLat.toString();
-	}
-	if (id == 'userLon'){
-		content = userLon.toString();
-	}
-	var box = document.createElement('input');
-	box.setAttribute('id', id);
-	box.setAttribute('value', content);
-	box.setAttribute('style',
-		'width:25px; border:1px solid #666; font-size:0.9em;');
-	parent.insertBefore(box, elem);
-	parent.removeChild(elem);
-	box.addEventListener(
-		'blur',
-		function(){
-			toSpan(box, false);
-			updateSTPLine();
-		},
-		false
-	);
-	box.addEventListener(
-		'keypress',
-		function(e){
-			if (e.keyCode == 13 || e.keyCode == 9){
-				e.preventDefault(); // The tab key would trigger a Firefox built-in
-				toSpan(box, true);
-				updateSTPLine();
-			}
-		},
-		false
-	);
-	box.select();
+function setUpUserInputs() {
+	var container = document.createElement('div');
+	container.setAttribute('id', 'userInputsContainer');
+	container.innerHTML = '\
+		<input type="text" id="userLat" placeholder="Latitude" value="'+
+		(isNaN(userLat) ? '': userLat)+'"></input>\
+		<input type="text" id="userLon" placeholder="Longitude" value="'+
+		(isNaN(userLon) ? '': userLon)+'"></input>';
+	container.addEventListener('keyup', function() {
+		var inputUserLat = document.getElementById('userLat');
+		var inputUserLon = document.getElementById('userLon');
+		userLat = safeParseCoords(inputUserLat.value);
+		userLon = safeParseCoords(inputUserLon.value);
+		updateSTPLine();
+	});
+	document.querySelector('div.bootstrap').appendChild(container);
 }
 
-function toSpan(elem, goNext){
-	var id = elem.getAttribute('id');
-	if (document.getElementById(id).tagName == 'INPUT') {
-	/* On Opera and Chrome, the keypress on enter also triggers the blur event,
-	   which would cause toSpan to be executed twice. To avoid the second
-	   execution, we make sure that the element we want to transform into a
-	   span is currently an input */
-		var parent = elem.parentNode;
-		var content = elem.value;
-		if (content == ''){
-			content = '...'
-		}
-		else if (isNaN(content)) {
-			content = NaN;
-		}
-		else {
-			content = parseFloat(content);
-		}
-		if (id == 'userLat'){
-			userLat = content;
-		}
-		if (id == 'userLon'){
-			userLon = content;
-		}
-		content = reduceCoord(content);
-		var span = document.createElement('span');
-		span.setAttribute('id', id);
-		span.innerHTML = content;
-		parent.insertBefore(span, elem);
-		parent.removeChild(elem);
-		span.addEventListener(
-			'click',
-			function(){
-				toBox(span);
-			},
-			false
-		);
-		if (goNext && id == 'userLat'){
-			toBox(document.getElementById('userLon'));
-		}
-	}
-}
 
 function attachNewLine(newLine){
-	var aircraftInfos = document.getElementsByClassName('aircraftInfoGrid')[0].children[0];
-	aircraftInfos.appendChild(newLine);
+	var ctx = document.querySelector(
+		'#aircraftInfoGridContainer \
+		.aircraft-info-location \
+		.data');
+	ctx.appendChild(newLine);
 }
 
 
@@ -339,11 +273,8 @@ function attachNewLine(newLine){
 function updateSTPLine(){
 	var stpValue = document.getElementById('SpotThePlane');
 	var message;
-	if (userLon === '...' || userLat === '...') {
-		message = 'Awaiting coordinates';
-	}
-	else if (isNaN(userLon) || isNaN(userLat)) {
-		message = 'Invalid coordinates';
+	if (isNaN(userLon) || isNaN(userLat)) {
+		message = 'Awaiting valid coordinates';
 	}
 	else {
 		var data = getPlaneData();
@@ -354,16 +285,12 @@ function updateSTPLine(){
 }
 
 
-function giveMeSomeSpace() {
-	document.getElementById('leftColOverlayAdContainer').setAttribute('style', 'display:none;');
-}
-
-
 /* MAIN PROGRAM */
 
 function run(){
+	setStyles();
 	setUserData();
-	giveMeSomeSpace();
+	setUpUserInputs();
 
 	var spotThePlane = createSpotThePlaneLine('Initializing...');
 	attachNewLine(spotThePlane);
@@ -375,12 +302,6 @@ function run(){
 	document.getElementById('latVal').addEventListener("DOMSubtreeModified", updateSTPLine, false);
 	document.getElementById('lonVal').addEventListener("DOMSubtreeModified", updateSTPLine, false);
 	document.getElementById('altitudeVal').addEventListener("DOMSubtreeModified", updateSTPLine, false);
-	
-	var userLatSpan = document.getElementById('userLat');
-	var userLonSpan = document.getElementById('userLon')
-	
-	userLatSpan.addEventListener('click', function(){ toBox(userLatSpan); }, false);
-	userLonSpan.addEventListener('click', function(){ toBox(userLonSpan); }, false);
 	
 	window.onbeforeunload = function(){
 		localStorage.setItem('userLat', userLat);

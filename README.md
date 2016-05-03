@@ -5,6 +5,10 @@ SpotThePlane is a user script for [flightradar24](http://flightradar24.com/) whi
 
 ![Screenshot](screenshot.png)
 
+ 1. Enter your coordinates into the inputs at the top-left of the map
+ 2. Select a plane to see its details in the left panel
+ 3. The last row indicates the plane's coordinates relative to yours
+
 
 ## Installation
 
@@ -17,15 +21,6 @@ SpotThePlane is a user script for [flightradar24](http://flightradar24.com/) whi
    * For **Opera**: [Violent Monkey](https://openuserjs.org/about/Violentmonkey-for-Opera)
 
  2. [Click Here](https://raw.githubusercontent.com/foobuzz/SpotThePlane/master/SpotThePlane.user.js) to install the user script
-
-
-## Configuration
-
-Go to [flightradar24.com](http://flightradar24.com/) and click on a plane to open its information pannel on the left of the screen. The last row is named *SpotThePlane* and says *Awaiting coordinates*. At the right of the row, there is a pair of ellipsis separated by a pipe. Click on the left ellipsis to open an input in which you can enter your own latitude, then do the same with the right ellipsis with your longitude.
-
-If the plane you've selected is out of sight, the row's value should become *Below the horizon*. Otherwise it shows the plane coordinates relative to the coordinates you've entered.
-
-You can edit the coordinates you've entered by clicking on them again.
 
 
 ## Reading the plane coordinates
